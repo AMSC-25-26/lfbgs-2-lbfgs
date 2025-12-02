@@ -8,7 +8,7 @@ class BFGS
 {
 public:
     // Constructor
-    BFGS(const Eigen::VectorXd& x0, int n);
+    BFGS(const Eigen::VectorXd& x0, const std::function<double(VectorXd const&)>& fun);
 
     // Update Hessian approximation:
     // Inputs:
@@ -16,7 +16,6 @@ public:
     //   x_old : previous solution  
     //   g_old : gradient at x_k
     //   p     : search direction
-    //   fun   : function to analyze
     //   alpha : step size
     //Output:
     //   B_new : current aproximation
@@ -24,7 +23,6 @@ public:
                             const Eigen::VectorXd& x_old,
                             const Eigen::VectorXd& g_old,
                             const Eigen::VectorXd& p,
-                            const std::function<double(VectorXd const&)>& fun,
                             double alpha);
 
     //Update the direction p_k:
@@ -33,14 +31,14 @@ public:
     //   grad  : gradient at x_k
     //Output:
     //   p_new : current direction p_k
-    Eigen::VectorXd computeDirectionP( const MatrixXd& B_old,
-                                       const VectorXd& grad);
+    Eigen::VectorXd computeDirectionP( const  Eigen::MatrixXd& B_old,
+                                       const Eigen::VectorXd& grad);
 
 
 private:
-    Eigen::MatrixXd B;   // Hessian approximation
-    Eigen::VectorXd x0;   //Initial condition
-
+    std::function<double(VectorXd const&)> fun_; //Function
+    Eigen::VectorXd x0_;   //Initial condition
+    Eigen::MatrixXd B; //Hessian Aproximation
 };
 
 #endif

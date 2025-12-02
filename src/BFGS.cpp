@@ -4,12 +4,14 @@
 
 using namespace Eigen;
 
-BFGS::BFGS(VectorXd x0_, int n)
+BFGS::BFGS(VectorXd x0, const std::function<double(VectorXd const&)>& fun )
 {
     //Initialize the initial condition
-    x0 = x0_;
+    x0_ = x0;
+    int n=x0_.rows();
     // initialize with identity
     B = MatrixXd::Identity(n, n);
+    fun_=fun;
 }
 
 VectorXd BFGS::computeDirectionP( const MatrixXd& B,
@@ -40,12 +42,11 @@ MatrixXd BFGS::updateB( const MatrixXd& B_old,
                         const VectorXd& x_old, 
                         const VectorXd& g_old,
                         const VectorXd& p,
-                        const std::function<double(VectorXd const&)>& fun,
                         double alpha)
 {
     VectorXd s = alpha * p;
     VectorXd x_new = x_old + s;
-    const VectorXd g_new = gradient(fun, x_new);      
+    const VectorXd g_new = gradient(fun_, x_new);      
     VectorXd y = g_new - g_old;       
 
     double yBy = y.transpose().dot(B_old*y);
