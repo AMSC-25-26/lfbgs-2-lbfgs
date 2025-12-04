@@ -1,10 +1,11 @@
-#include <BFGS.hpp>
+#include "BFGS.hpp"
 #include <MathTools.hpp>
 #include <iostream>
+#include <Eigen/IterativeLinearSolvers>
 
 using namespace Eigen;
 
-BFGS::BFGS(VectorXd x0, const std::function<double(VectorXd const&)>& fun )
+BFGS::BFGS(const VectorXd & x0, const std::function<double(VectorXd const&)>& fun, const double & tol)
 {
     //Initialize the initial condition
     x0_ = x0;
@@ -12,6 +13,7 @@ BFGS::BFGS(VectorXd x0, const std::function<double(VectorXd const&)>& fun )
     // initialize with identity
     B = MatrixXd::Identity(n, n);
     fun_=fun;
+    tol_=tol;
 }
 
 VectorXd BFGS::computeDirectionP( const MatrixXd& B,
@@ -39,15 +41,9 @@ VectorXd BFGS::computeDirectionP( const MatrixXd& B,
 }
 
 MatrixXd BFGS::updateB( const MatrixXd& B_old,
-                        const VectorXd& x_old, 
-                        const VectorXd& g_old,
-                        const VectorXd& p,
-                        double alpha)
-{
-    VectorXd s = alpha * p;
-    VectorXd x_new = x_old + s;
-    const VectorXd g_new = gradient(fun_, x_new);      
-    VectorXd y = g_new - g_old;       
+                        const VectorXd& y,
+                        const VectorXd& s)
+{   
 
     double yBy = y.transpose().dot(B_old*y);
     double sy = s.transpose().dot(y);
@@ -56,5 +52,28 @@ MatrixXd BFGS::updateB( const MatrixXd& B_old,
     MatrixXd term2 = ((B_old * y * s.transpose())+(s*y.transpose()* B_old)) / sy;
 
     return B_old + term1 - term2;
+}
+
+void BFGS::updateSolution(VectorXd& x_old, VectorXd& grad_old, const VectorXd& d, VectorXd& s, VectorXd& y) {
+        double alpha = 1.0; // line search
+        s = alpha * d;
+        VectorXd x_new = x_old + s;
+        
+        VectorXd grad_new = MathTools::gradient(fun_, x_new);
+        y = grad_new - grad_old;
+
+        x_old = x_new;
+        grad_old = grad_new; 
+    }
+
+void BFGS::run(){
+    VectorXd x = x0_;
+    VectorXd grad = MathTools::gradient(fun_, x);
+    VectorXd d, s, y;
+    while(grad.norm() > tol_) {
+        d = BFGS::computeDirectionP(B, grad);
+        updateSolution(x, grad, d, s, y);
+        B = updateB(B, y, s);
+    }    
 }
 
