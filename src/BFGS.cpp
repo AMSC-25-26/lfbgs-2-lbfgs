@@ -40,19 +40,20 @@ VectorXd BFGS::computeDirectionP( const MatrixXd& B,
 
 }
 
-MatrixXd BFGS::updateB( const MatrixXd& B_old,
-                        const VectorXd& y,
-                        const VectorXd& s)
+
+void BFGS::updateB(
+                        const VectorXd& gamma,
+                        const VectorXd& delta)
 {   
+  double yBy = gamma.transpose().dot(B*gamma);
+  double sy = delta.transpose().dot(gamma);
 
-    double yBy = y.transpose().dot(B_old*y);
-    double sy = s.transpose().dot(y);
+  MatrixXd term1 = (( sy + yBy )*(delta*delta.transpose())) / (sy*sy);
+  MatrixXd term2 = ((B * gamma * delta.transpose())+(delta*gamma.transpose()* B)) / sy;
 
-    MatrixXd term1 = (( sy + yBy )*(s*s.transpose())) / (sy*sy);
-    MatrixXd term2 = ((B_old * y * s.transpose())+(s*y.transpose()* B_old)) / sy;
-
-    return B_old + term1 - term2;
+  B += term1 - term2;
 }
+
 
 void BFGS::updateSolution(VectorXd& x_old, VectorXd& grad_old, const VectorXd& d, VectorXd& delta, VectorXd& gamma) {
   double alpha = 1.0; // line search
@@ -67,14 +68,19 @@ void BFGS::updateSolution(VectorXd& x_old, VectorXd& grad_old, const VectorXd& d
   grad_old = grad_new; 
 }
 
-void BFGS::run(){
-    VectorXd x = x0_;
-    VectorXd grad = MathTools::gradient(fun_, x);
-    VectorXd d, s, y;
-    while(grad.norm() > tol_) {
-        d = BFGS::computeDirectionP(B, grad);
-        updateSolution(x, grad, d, s, y);
-        B = updateB(B, y, s);
-    }    
-}
 
+void BFGS::run() {
+  unsigned int iter = 0;
+
+  VectorXd x = x0_;
+  VectorXd grad = MathTools::gradient(fun_, x);
+  VectorXd d, delta, gamma;
+
+  while(grad.norm() > tol_) {
+    d = BFGS::computeDirectionP(grad);
+    updateSolution(x, grad, d, delta, gamma);
+    updateB(gamma, delta);
+
+    ++iter;
+  }
+}
