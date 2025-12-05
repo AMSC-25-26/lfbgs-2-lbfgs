@@ -2,13 +2,18 @@
 #define BFGS_HPP
 
 #include <Eigen/Dense>
+#include <Eigen/IterativeLinearSolvers>
 #include <functional>
 
-class BFGS
-{
-public:
-    // Constructor
-    BFGS(const Eigen::VectorXd& x0, const std::function<double(VectorXd const&)>& fun, const double & tol);
+using namespace Eigen;
+
+
+class BFGS {
+  public:
+
+      BFGS(const VectorXd & x0, const std::function<double(VectorXd const&)>& fun, const double & tol) :
+        x0_(x0), B(MatrixXd::Identity(x0.rows(), x0.rows())), fun_(fun), tol_(tol)
+      {};
 
       // Update Hessian approximation:
       // Inputs:

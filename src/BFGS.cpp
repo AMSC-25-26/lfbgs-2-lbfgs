@@ -1,20 +1,6 @@
 #include "BFGS.hpp"
-#include <MathTools.hpp>
-#include <iostream>
-#include <Eigen/IterativeLinearSolvers>
+#include "MathTools.hpp"
 
-using namespace Eigen;
-
-BFGS::BFGS(const VectorXd & x0, const std::function<double(VectorXd const&)>& fun, const double & tol)
-{
-    //Initialize the initial condition
-    x0_ = x0;
-    int n=x0_.rows();
-    // initialize with identity
-    B = MatrixXd::Identity(n, n);
-    fun_=fun;
-    tol_=tol;
-}
 
 VectorXd BFGS::computeDirectionP(const VectorXd& grad)
 {
