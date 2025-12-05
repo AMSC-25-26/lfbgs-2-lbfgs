@@ -8,7 +8,10 @@ template <unsigned int m>
 class LBFGS : public BFGS {
   
   public:
-    LBFGS(const VectorXd &, const std::function<double(const VectorXd &)> &, const double &) :  {}
+    LBFGS(const VectorXd &x0, const std::function<double(const VectorXd &)> &fun) :
+      x0_(x0),
+      fun_(fun)
+    {};
     void run() override;
 
   private:
