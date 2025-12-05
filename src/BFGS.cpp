@@ -54,17 +54,18 @@ MatrixXd BFGS::updateB( const MatrixXd& B_old,
     return B_old + term1 - term2;
 }
 
-void BFGS::updateSolution(VectorXd& x_old, VectorXd& grad_old, const VectorXd& d, VectorXd& s, VectorXd& y) {
-        double alpha = 1.0; // line search
-        s = alpha * d;
-        VectorXd x_new = x_old + s;
-        
-        VectorXd grad_new = MathTools::gradient(fun_, x_new);
-        y = grad_new - grad_old;
+void BFGS::updateSolution(VectorXd& x_old, VectorXd& grad_old, const VectorXd& d, VectorXd& delta, VectorXd& gamma) {
+  double alpha = 1.0; // line search
 
-        x_old = x_new;
-        grad_old = grad_new; 
-    }
+  delta = alpha * d;
+  VectorXd x_new = x_old + delta;
+  
+  VectorXd grad_new = MathTools::gradient(fun_, x_new);
+  gamma = grad_new - grad_old;
+
+  x_old = x_new;
+  grad_old = grad_new; 
+}
 
 void BFGS::run(){
     VectorXd x = x0_;
