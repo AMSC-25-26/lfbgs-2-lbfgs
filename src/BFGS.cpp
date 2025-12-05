@@ -16,28 +16,20 @@ BFGS::BFGS(const VectorXd & x0, const std::function<double(VectorXd const&)>& fu
     tol_=tol;
 }
 
-VectorXd BFGS::computeDirectionP( const MatrixXd& B,
-                                  const VectorXd& grad)
+VectorXd BFGS::computeDirectionP(const VectorXd& grad)
 {
-    Eigen::ConjugateGradient<Eigen::MatrixXd, Eigen::Lower|Eigen::Upper> cg;
+  Eigen::ConjugateGradient<MatrixXd, Eigen::Lower|Eigen::Upper> cg;
+  cg.compute(B);
 
-    cg.compute(B);
+  // If B is not SPD, CG will not converge
+  // This condition should NEVER be true (from theory)
+  if (cg.info() != Eigen::Success)
+    throw std::runtime_error("CG failed: B is not SPD.");
 
-    // If B is not SPD, CG will not converge
-    //This condition should NEVER be true (from theory)
-    if (cg.info() != Eigen::Success) {
-        throw std::runtime_error("CG failed: B is not SPD.");
-    }
-
-    // Solve B * p = -grad
-    Eigen::VectorXd p = cg.solve(-grad);
-
-    if (cg.info() != Eigen::Success) {
-        throw std::runtime_error("CG failed to solve system.");
-    }
-
-    return p;
-
+  // Solve B * p = -grad
+  VectorXd p = cg.solve(-grad);
+  
+  return p;
 }
 
 
