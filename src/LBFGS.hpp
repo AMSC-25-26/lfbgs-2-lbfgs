@@ -15,6 +15,6 @@ class LBFGS : public BFGS {
     std::vector<std::pair<const VectorXd, const VectorXd>> history; // reserve(m)
     std::vector<double> alpha; // reserve(m)
 
-    VectorXd backward_pass(const VectorXd &);
-    VectorXd forward_pass(const VectorXd &);
+    void backward_pass(const VectorXd &);
+    void forward_pass(const VectorXd &);
 };
