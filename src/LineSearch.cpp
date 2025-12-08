@@ -1,4 +1,5 @@
 #include "LineSearch.hpp"
+#include "utils/MathTools.hpp"
 
 #define MAX_ITER 100
 
@@ -67,8 +68,8 @@ public:
             if (phi > phi0 + c1 * alpha * dphi0 || (i > 1 && phi >= phi_prev)) {
                 return zoom(fun, x, p, alpha_prev, alpha, phi0, dphi0, c1, c2);
             }
-            
-            Eigen::VectorXd g_new = gradient(fun, x + alpha * p);
+            Eigen::VectorXd x_new = x + alpha * p;
+            Eigen::VectorXd g_new = MathTools::gradient(fun, x_new);
             double dphi = g_new.dot(p);
             
             if (std::abs(dphi) <= -c2 * dphi0) {
@@ -116,7 +117,8 @@ private:
            if (phi_j > phi0 + c1 * alpha_j * dphi0 || phi_j >= phi_lo) {
                alpha_hi = alpha_j;
            } else {
-               double dphi_j = gradient(fun, x + alpha_j * p).dot(p);
+               Eigen::VectorXd x_new = x + alpha_j * p;
+               double dphi_j = MathTools::gradient(fun, x_new).dot(p);
                
                //curvatura
                if (std::abs(dphi_j) <= -c2 * dphi0) {

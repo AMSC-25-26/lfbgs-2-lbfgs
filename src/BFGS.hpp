@@ -4,42 +4,40 @@
 #include <Eigen/Dense>
 #include <Eigen/IterativeLinearSolvers>
 #include <functional>
+#include "LineSearch.hpp"
 
 using namespace Eigen;
-
 
 class BFGS {
   public:
 
-      BFGS(const VectorXd & x0, const std::function<double(VectorXd const&)>& fun, const double & tol) :
-        x0_(x0), B(MatrixXd::Identity(x0.rows(), x0.rows())), fun_(fun), tol_(tol)
+      BFGS(const VectorXd & x0, const std::function<double(VectorXd const&)>& fun, const double & tol, lfbgs::LineSearchType type) :
+        x0_(x0),
+        B(MatrixXd::Identity(x0.rows(), x0.rows())), 
+        fun_(fun), 
+        tol_(tol),
+        type_(type) 
       {};
-
-      // Update Hessian approximation:
-      // Inputs:
-      //   gamma : difference between grad(x_k+1) and grad(x_k)
-      //   delta: difference between x_k+1 and x_k
-      //Output:
-      //   B_new : current aproximation
+      
       void updateB(const VectorXd&, const VectorXd&);
 
-      //Update the direction p_k:
-      //Inputs:
-      //   grad  : gradient at x_k
-      //Output:
-      //   p_new : current direction p_k
       VectorXd computeDirectionP(const VectorXd&);
       
-      void updateSolution(VectorXd&, VectorXd&, const VectorXd&, VectorXd&, VectorXd&);
+      void updateSolution(VectorXd&, VectorXd&, const VectorXd&, VectorXd&, VectorXd&, lfbgs::LineSearchType type);
+      
       virtual void run();
+
+      Eigen::VectorXd getCurrentX() const;
 
 
   private:
       std::function<double(VectorXd const&)> fun_; //Function
       VectorXd x0_;   //Initial condition
+      VectorXd solution_ = x0_;
       MatrixXd B; //Hessian Aproximation
 
       double tol_;
+      lfbgs::LineSearchType type_;
 };
 
 #endif

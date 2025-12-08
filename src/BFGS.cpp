@@ -1,5 +1,6 @@
 #include "BFGS.hpp"
-#include "MathTools.hpp"
+#include "utils/MathTools.hpp"
+#include "LineSearch.hpp"
 
 
 VectorXd BFGS::computeDirectionP(const VectorXd& grad)
@@ -33,8 +34,10 @@ void BFGS::updateB(
 }
 
 
-void BFGS::updateSolution(VectorXd& x_old, VectorXd& grad_old, const VectorXd& d, VectorXd& delta, VectorXd& gamma) {
-  double alpha = 1.0; // line search
+void BFGS::updateSolution(VectorXd& x_old, VectorXd& grad_old, const VectorXd& d, VectorXd& delta, VectorXd& gamma, lfbgs::LineSearchType type ) {
+  double alpha = 1.0;  // default
+  auto line_search = lfbgs::make_line_search(type);
+  alpha = line_search->compute(fun_, x_old, grad_old, d);
 
   delta = alpha * d;
   VectorXd x_new = x_old + delta;
@@ -56,9 +59,16 @@ void BFGS::run() {
 
   while(grad.norm() > tol_) {
     d = BFGS::computeDirectionP(grad);
-    updateSolution(x, grad, d, delta, gamma);
+    updateSolution(x, grad, d, delta, gamma, type_);
     updateB(gamma, delta);
 
     ++iter;
   }
+
+  solution_=x;
+  
 }
+
+Eigen::VectorXd BFGS::getCurrentX() const {
+    return solution_;
+  }
