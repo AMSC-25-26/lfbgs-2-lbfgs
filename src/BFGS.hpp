@@ -30,7 +30,7 @@ class BFGS {
       Eigen::VectorXd getCurrentX() const;
 
 
-  private:
+  protected:
       std::function<double(VectorXd const&)> fun_; //Function
       VectorXd x0_;   //Initial condition
       VectorXd solution_ = x0_;
