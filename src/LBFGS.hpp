@@ -19,20 +19,7 @@ template <unsigned int m>
 class LBFGS : public BFGS {
   
   public:
-    /**
-     * @brief Constructs an L-BFGS optimizer.
-     *
-     * @param x0 Initial point.
-     * @param fun Objective function f(x) to minimize.
-     * @param tol Gradient norm tolerance for stopping.
-     * @param type Line search strategy.
-     */
-    LBFGS(const Vector &x0,
-          const std::function<double(const Vector &)> &fun,
-          double tol,
-          lfbgs::LineSearchType type)
-      : BFGS(x0, fun, tol, type)
-    {}
+    using BFGS::BFGS;
 
     /**
      * @brief Executes the L-BFGS optimization algorithm.
