@@ -1,3 +1,13 @@
+/**
+ * @file BFGS.hpp
+ * @brief Declaration of the BFGS optimization algorithm class.
+ *
+ * This file defines the BFGS class, which implements the classical
+ * quasi-Newton BFGS method for unconstrained optimization.  
+ * The class provides tools to approximate the Hessian, compute the 
+ * search direction, update the iterate, and run the optimization.
+ */
+
 #ifndef BFGS_HPP
 #define BFGS_HPP
 
@@ -8,39 +18,140 @@
 
 using namespace Eigen;
 
+/**
+ * @class BFGS
+ * @brief Classical BFGS quasi-Newton optimizer.
+ *
+ * This class implements the standard BFGS algorithm:
+ * - maintains a full Hessian approximation \( B_k \)
+ * - computes descent directions by solving \( B_k p_k = -g_k \)
+ * - updates the Hessian using the BFGS rank-two formula
+ * - updates the iterate using a line search (Armijo or Wolfe)
+ *
+ * The run() method executes the optimization loop until convergence.
+ */
 class BFGS {
-  public:
+public:
 
-      BFGS(const VectorXd & x0, const std::function<double(VectorXd const&)>& fun, const double & tol, lfbgs::LineSearchType type) :
+    /**
+     * @brief Construct a BFGS solver.
+     *
+     * @param x0  Initial point of the optimization.
+     * @param fun Objective function to minimize.
+     * @param tol Stopping tolerance on the gradient norm.
+     * @param type Type of line search (Armijo or Strong Wolfe).
+     */
+    BFGS(
+        const VectorXd & x0,
+        const std::function<double(VectorXd const&)>& fun,
+        const double & tol,
+        lfbgs::LineSearchType type
+    )
+    :
         x0_(x0),
-        B(MatrixXd::Identity(x0.rows(), x0.rows())), 
-        fun_(fun), 
+        B(MatrixXd::Identity(x0.rows(), x0.rows())),
+        fun_(fun),
         tol_(tol),
-        type_(type) 
-      {};
-      
-      virtual void run();
+        type_(type)
+    {}
 
-      Eigen::VectorXd getCurrentX() const;
+    /**
+     * @brief Run the BFGS optimization loop.
+     *
+     * Executes:
+     * 1. Gradient computation  
+     * 2. Direction computation  
+     * 3. Line search  
+     * 4. Hessian approximation update  
+     *
+     * Stops when ||grad|| < tol.
+     */
+    virtual void run();
 
-  protected:
-  
-      std::function<double(VectorXd const&)> fun_; //Function
-      VectorXd x0_;   //Initial condition
-      VectorXd solution_ = x0_;
-      MatrixXd B; //Hessian Aproximation
+    /**
+     * @brief Get the last computed solution.
+     * @return The current estimate of the minimizer.
+     */
+    Eigen::VectorXd getCurrentX() const;
 
-      double tol_;
-      lfbgs::LineSearchType type_;
+protected:
 
-      VectorXd computeDirectionP(const VectorXd&);
-      
-      void updateSolution(VectorXd&, VectorXd&, const VectorXd&, VectorXd&, VectorXd&, lfbgs::LineSearchType type);
+    /** @brief Objective function. */
+    std::function<double(VectorXd const&)> fun_;
 
-  private:
+    /** @brief Initial point. */
+    VectorXd x0_;
 
-      void updateB(const VectorXd&, const VectorXd&);
+    /** @brief Last computed solution. */
+    VectorXd solution_ = x0_;
 
+    /** @brief Hessian approximation matrix \(B_k\). */
+    MatrixXd B;
+
+    /** @brief Stopping tolerance. */
+    double tol_;
+
+    /** @brief Type of line search algorithm. */
+    lfbgs::LineSearchType type_;
+
+    /**
+     * @brief Compute the search direction.
+     *
+     * Solves the linear system:
+     * \f[
+     *     B_k p_k = - \nabla f(x_k)
+     * \f]
+     * using Eigen’s conjugate gradient solver.
+     *
+     * @param grad Current gradient.
+     * @return The search direction \( p_k \).
+     */
+    VectorXd computeDirectionP(const VectorXd& grad);
+
+    /**
+     * @brief Update iterate, gradient and step vectors.
+     *
+     * Computes:
+     * - \( x_{k+1} = x_k + \alpha p_k \)
+     * - \( \delta_k = x_{k+1} - x_k \)
+     * - \( \gamma_k = g_{k+1} - g_k \)
+     *
+     * @param x_old  Previous iterate (updated in-place).
+     * @param g_old  Previous gradient (updated in-place).
+     * @param d      Search direction.
+     * @param delta  Step vector \( \delta_k = x_{k+1}-x_k \).
+     * @param gamma  Gradient difference \( \gamma_k = g_{k+1}-g_k \).
+     * @param type   Line search type.
+     */
+    void updateSolution(
+        VectorXd& x_old,
+        VectorXd& g_old,
+        const VectorXd& d,
+        VectorXd& delta,
+        VectorXd& gamma,
+        lfbgs::LineSearchType type
+    );
+
+private:
+
+    /**
+     * @brief Update the Hessian approximation using BFGS formula.
+     *
+     * Computes:
+     * \f[
+     *      B_{k+1}
+     *      = B_k 
+     *      + \frac{ \gamma\gamma^T }{ \gamma^T \delta }
+     *      - \frac{ B_k \delta \delta^T B_k }{ \delta^T B_k \delta }
+     * \f]
+     *
+     * @param gamma Gradient difference.
+     * @param delta Step vector.
+     */
+    void updateB(
+        const VectorXd& gamma,
+        const VectorXd& delta
+    );
 };
 
-#endif
+#endif // BFGS_HPP

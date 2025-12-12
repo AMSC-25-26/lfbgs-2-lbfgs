@@ -2,55 +2,82 @@
 #include "utils/MathTools.hpp"
 #include "LineSearch.hpp"
 
-
+/**
+ * @brief Computes the search direction using the current Hessian approximation B.
+ *
+ * Solves the linear system B * p = -grad using Conjugate Gradient.
+ * Assumes B is SPD (symmetric positive definite).
+ *
+ * @param grad Current gradient vector.
+ * @return Search direction vector p.
+ * @throws std::runtime_error if B is not SPD and CG fails.
+ */
 VectorXd BFGS::computeDirectionP(const VectorXd& grad)
 {
   Eigen::ConjugateGradient<MatrixXd, Eigen::Lower|Eigen::Upper> cg;
   cg.compute(B);
 
-  // If B is not SPD, CG will not converge
-  // This condition should NEVER be true (from theory)
   if (cg.info() != Eigen::Success)
-    throw std::runtime_error("CG failed: B is not SPD.");
+      throw std::runtime_error("CG failed: B is not SPD.");
 
-  // Solve B * p = -grad
   VectorXd p = cg.solve(-grad);
-  
   return p;
 }
 
-
-void BFGS::updateB(
-                        const VectorXd& gamma,
-                        const VectorXd& delta)
-{   
+/**
+ * @brief Updates the Hessian approximation B using the BFGS formula.
+ *
+ * @param gamma Difference of gradients: gamma = grad_new - grad_old
+ * @param delta Step taken: delta = x_new - x_old
+ */
+void BFGS::updateB(const VectorXd& gamma, const VectorXd& delta)
+{
   double yBy = gamma.transpose().dot(B*gamma);
   double sy = delta.transpose().dot(gamma);
 
-  MatrixXd term1 = (( sy + yBy )*(delta*delta.transpose())) / (sy*sy);
-  MatrixXd term2 = ((B * gamma * delta.transpose())+(delta*gamma.transpose()* B)) / sy;
+  MatrixXd term1 = ((sy + yBy) * (delta*delta.transpose())) / (sy*sy);
+  MatrixXd term2 = ((B * gamma * delta.transpose()) + (delta * gamma.transpose() * B)) / sy;
 
   B += term1 - term2;
 }
 
-
-void BFGS::updateSolution(VectorXd& x_old, VectorXd& grad_old, const VectorXd& d, VectorXd& delta, VectorXd& gamma, lfbgs::LineSearchType type ) {
-  double alpha = 1.0;  // default
+/**
+ * @brief Updates the current solution x and gradient, computing delta and gamma.
+ *
+ * Uses a line search algorithm to determine step size alpha.
+ *
+ * @param x_old Current solution (will be updated to x_new).
+ * @param grad_old Current gradient (will be updated to grad_new).
+ * @param d Search direction vector.
+ * @param delta Step vector (delta = alpha * d).
+ * @param gamma Gradient difference (gamma = grad_new - grad_old).
+ * @param type Type of line search to use.
+ */
+void BFGS::updateSolution(VectorXd& x_old, VectorXd& grad_old,
+                          const VectorXd& d, VectorXd& delta, VectorXd& gamma,
+                          lfbgs::LineSearchType type)
+{
   auto line_search = lfbgs::make_line_search(type);
-  alpha = line_search->compute(fun_, x_old, grad_old, d);
+  double alpha = line_search->compute(fun_, x_old, grad_old, d);
 
   delta = alpha * d;
   VectorXd x_new = x_old + delta;
-  
+
   VectorXd grad_new = MathTools::gradient(fun_, x_new);
   gamma = grad_new - grad_old;
 
   x_old = x_new;
-  grad_old = grad_new; 
+  grad_old = grad_new;
 }
 
-
-void BFGS::run() {
+/**
+ * @brief Executes the full BFGS optimization algorithm.
+ *
+ * Iteratively updates x using computed search directions until
+ * the gradient norm is below the specified tolerance.
+ */
+void BFGS::run()
+{
   unsigned int iter = 0;
 
   VectorXd x = x0_;
@@ -65,10 +92,15 @@ void BFGS::run() {
     ++iter;
   }
 
-  solution_=x;
-  
+  solution_ = x;
 }
 
-Eigen::VectorXd BFGS::getCurrentX() const {
-    return solution_;
-  }
+/**
+ * @brief Returns the current solution vector.
+ * 
+ * @return Current solution x.
+ */
+Eigen::VectorXd BFGS::getCurrentX() const
+{
+  return solution_;
+}
