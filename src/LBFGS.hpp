@@ -1,7 +1,6 @@
 #include <vector>
 #include <deque>
 #include <utility>
-#include <Eigen/Dense>
 #include "BFGS.hpp"
 #include "utils/MathTools.hpp"
 
