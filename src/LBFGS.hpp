@@ -1,4 +1,5 @@
 #include <vector>
+#include <deque>
 #include <utility>
 #include <Eigen/Dense>
 #include "BFGS.hpp"
@@ -49,7 +50,7 @@ class LBFGS : public BFGS {
      * - s_k = x_{k+1} − x_k
      * - y_k = ∇f(x_{k+1}) − ∇f(x_k)
      */
-    std::vector<std::pair<Vector, Vector>> history;
+    std::deque<std::pair<Vector, Vector>> history;
 
     /**
      * @brief Alpha coefficients used in the two-loop recursion.
@@ -96,7 +97,6 @@ void LBFGS<m>::forward_pass(Vector &r) {
 
 template <unsigned int m>
 void LBFGS<m>::run() {
-  history.reserve(m);
   alpha.resize(m);
 
   int iter = 0;
@@ -123,7 +123,7 @@ void LBFGS<m>::run() {
 
     // Update limited-memory history
     if (history.size() == m) {
-      history.erase(history.begin());
+      history.pop_front();
     }
     history.push_back({s, y});
 
