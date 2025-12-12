@@ -45,7 +45,7 @@ void LBFGS<m>::forward_pass(VectorXd &r) {
 }
 
 template <unsigned int m>
-void LBFGS<m>::run() {
+void LBFGS<m>::run() override {
   history.reserve(m);
   alpha.resize(m);
 

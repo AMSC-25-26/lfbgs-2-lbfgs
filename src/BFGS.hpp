@@ -19,18 +19,12 @@ class BFGS {
         type_(type) 
       {};
       
-      void updateB(const VectorXd&, const VectorXd&);
-
-      VectorXd computeDirectionP(const VectorXd&);
-      
-      void updateSolution(VectorXd&, VectorXd&, const VectorXd&, VectorXd&, VectorXd&, lfbgs::LineSearchType type);
-      
       virtual void run();
 
       Eigen::VectorXd getCurrentX() const;
 
-
   protected:
+  
       std::function<double(VectorXd const&)> fun_; //Function
       VectorXd x0_;   //Initial condition
       VectorXd solution_ = x0_;
@@ -38,6 +32,15 @@ class BFGS {
 
       double tol_;
       lfbgs::LineSearchType type_;
+
+      VectorXd computeDirectionP(const VectorXd&);
+      
+      void updateSolution(VectorXd&, VectorXd&, const VectorXd&, VectorXd&, VectorXd&, lfbgs::LineSearchType type);
+
+  private:
+
+      void updateB(const VectorXd&, const VectorXd&);
+
 };
 
 #endif
