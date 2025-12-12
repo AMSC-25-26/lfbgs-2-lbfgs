@@ -14,13 +14,12 @@
  */
 Vector BFGS::computeDirectionP(const Vector& grad)
 {
-  Eigen::ConjugateGradient<Eigen::MatrixXd, Eigen::Lower|Eigen::Upper> cg;
-  cg.compute(B);
+  solver.compute(B);
 
-  if (cg.info() != Eigen::Success)
+  if (solver.info() != Eigen::Success)
       throw std::runtime_error("CG failed: B is not SPD.");
 
-  Vector p = cg.solve(-grad);
+  Vector p = solver.solve(-grad);
   return p;
 }
 

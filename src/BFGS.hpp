@@ -12,7 +12,6 @@
 #define BFGS_HPP
 
 #include <Eigen/Dense>
-#include <Eigen/IterativeLinearSolvers>
 #include <functional>
 #include "LineSearch.hpp"
 
@@ -87,6 +86,9 @@ protected:
 
     /** @brief Hessian approximation matrix \(B_k\). */
     Eigen::MatrixXd B;
+
+    /** @brief Cholesky solver for systems with matrix B . */
+    Eigen::LLT<Eigen::MatrixXd> solver;
 
     /** @brief Stopping tolerance. */
     double tol_;
