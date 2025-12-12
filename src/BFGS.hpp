@@ -16,7 +16,7 @@
 #include <functional>
 #include "LineSearch.hpp"
 
-using namespace Eigen;
+using Vector = Eigen::VectorXd;
 
 /**
  * @class BFGS
@@ -42,14 +42,14 @@ public:
      * @param type Type of line search (Armijo or Strong Wolfe).
      */
     BFGS(
-        const VectorXd & x0,
-        const std::function<double(VectorXd const&)>& fun,
+        const Vector & x0,
+        const std::function<double(Vector const&)>& fun,
         const double & tol,
         lfbgs::LineSearchType type
     )
     :
         x0_(x0),
-        B(MatrixXd::Identity(x0.rows(), x0.rows())),
+        B(Eigen::MatrixXd::Identity(x0.rows(), x0.rows())),
         fun_(fun),
         tol_(tol),
         type_(type)
@@ -72,21 +72,21 @@ public:
      * @brief Get the last computed solution.
      * @return The current estimate of the minimizer.
      */
-    Eigen::VectorXd getCurrentX() const;
+    Vector getCurrentX() const;
 
 protected:
 
     /** @brief Objective function. */
-    std::function<double(VectorXd const&)> fun_;
+    std::function<double(Vector const&)> fun_;
 
     /** @brief Initial point. */
-    VectorXd x0_;
+    Vector x0_;
 
     /** @brief Last computed solution. */
-    VectorXd solution_ = x0_;
+    Vector solution_ = x0_;
 
     /** @brief Hessian approximation matrix \(B_k\). */
-    MatrixXd B;
+    Eigen::MatrixXd B;
 
     /** @brief Stopping tolerance. */
     double tol_;
@@ -106,7 +106,7 @@ protected:
      * @param grad Current gradient.
      * @return The search direction \( p_k \).
      */
-    VectorXd computeDirectionP(const VectorXd& grad);
+    Vector computeDirectionP(const Vector& grad);
 
     /**
      * @brief Update iterate, gradient and step vectors.
@@ -124,11 +124,11 @@ protected:
      * @param type   Line search type.
      */
     void updateSolution(
-        VectorXd& x_old,
-        VectorXd& g_old,
-        const VectorXd& d,
-        VectorXd& delta,
-        VectorXd& gamma,
+        Vector& x_old,
+        Vector& g_old,
+        const Vector& d,
+        Vector& delta,
+        Vector& gamma,
         lfbgs::LineSearchType type
     );
 
@@ -149,8 +149,8 @@ private:
      * @param delta Step vector.
      */
     void updateB(
-        const VectorXd& gamma,
-        const VectorXd& delta
+        const Vector& gamma,
+        const Vector& delta
     );
 };
 

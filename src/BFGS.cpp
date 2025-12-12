@@ -12,15 +12,15 @@
  * @return Search direction vector p.
  * @throws std::runtime_error if B is not SPD and CG fails.
  */
-VectorXd BFGS::computeDirectionP(const VectorXd& grad)
+Vector BFGS::computeDirectionP(const Vector& grad)
 {
-  Eigen::ConjugateGradient<MatrixXd, Eigen::Lower|Eigen::Upper> cg;
+  Eigen::ConjugateGradient<Eigen::MatrixXd, Eigen::Lower|Eigen::Upper> cg;
   cg.compute(B);
 
   if (cg.info() != Eigen::Success)
       throw std::runtime_error("CG failed: B is not SPD.");
 
-  VectorXd p = cg.solve(-grad);
+  Vector p = cg.solve(-grad);
   return p;
 }
 
@@ -30,13 +30,13 @@ VectorXd BFGS::computeDirectionP(const VectorXd& grad)
  * @param gamma Difference of gradients: gamma = grad_new - grad_old
  * @param delta Step taken: delta = x_new - x_old
  */
-void BFGS::updateB(const VectorXd& gamma, const VectorXd& delta)
+void BFGS::updateB(const Vector& gamma, const Vector& delta)
 {
   double yBy = gamma.transpose().dot(B*gamma);
   double sy = delta.transpose().dot(gamma);
 
-  MatrixXd term1 = ((sy + yBy) * (delta*delta.transpose())) / (sy*sy);
-  MatrixXd term2 = ((B * gamma * delta.transpose()) + (delta * gamma.transpose() * B)) / sy;
+  Eigen::MatrixXd term1 = ((sy + yBy) * (delta*delta.transpose())) / (sy*sy);
+  Eigen::MatrixXd term2 = ((B * gamma * delta.transpose()) + (delta * gamma.transpose() * B)) / sy;
 
   B += term1 - term2;
 }
@@ -53,17 +53,17 @@ void BFGS::updateB(const VectorXd& gamma, const VectorXd& delta)
  * @param gamma Gradient difference (gamma = grad_new - grad_old).
  * @param type Type of line search to use.
  */
-void BFGS::updateSolution(VectorXd& x_old, VectorXd& grad_old,
-                          const VectorXd& d, VectorXd& delta, VectorXd& gamma,
+void BFGS::updateSolution(Vector& x_old, Vector& grad_old,
+                          const Vector& d, Vector& delta, Vector& gamma,
                           lfbgs::LineSearchType type)
 {
   auto line_search = lfbgs::make_line_search(type);
   double alpha = line_search->compute(fun_, x_old, grad_old, d);
 
   delta = alpha * d;
-  VectorXd x_new = x_old + delta;
+  Vector x_new = x_old + delta;
 
-  VectorXd grad_new = MathTools::gradient(fun_, x_new);
+  Vector grad_new = MathTools::gradient(fun_, x_new);
   gamma = grad_new - grad_old;
 
   x_old = x_new;
@@ -80,9 +80,9 @@ void BFGS::run()
 {
   unsigned int iter = 0;
 
-  VectorXd x = x0_;
-  VectorXd grad = MathTools::gradient(fun_, x);
-  VectorXd d, delta, gamma;
+  Vector x = x0_;
+  Vector grad = MathTools::gradient(fun_, x);
+  Vector d, delta, gamma;
 
   while(grad.norm() > tol_) {
     d = BFGS::computeDirectionP(grad);

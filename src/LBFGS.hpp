@@ -4,8 +4,6 @@
 #include "BFGS.hpp"
 #include "utils/MathTools.hpp"
 
-using namespace Eigen;
-
 /**
  * @brief Limited-memory BFGS optimizer (L-BFGS).
  *
@@ -28,8 +26,8 @@ class LBFGS : public BFGS {
      * @param tol Gradient norm tolerance for stopping.
      * @param type Line search strategy.
      */
-    LBFGS(const VectorXd &x0,
-          const std::function<double(const VectorXd &)> &fun,
+    LBFGS(const Vector &x0,
+          const std::function<double(const Vector &)> &fun,
           double tol,
           lfbgs::LineSearchType type)
       : BFGS(x0, fun, tol, type)
@@ -51,7 +49,7 @@ class LBFGS : public BFGS {
      * - s_k = x_{k+1} − x_k
      * - y_k = ∇f(x_{k+1}) − ∇f(x_k)
      */
-    std::vector<std::pair<VectorXd, VectorXd>> history;
+    std::vector<std::pair<Vector, Vector>> history;
 
     /**
      * @brief Alpha coefficients used in the two-loop recursion.
@@ -65,7 +63,7 @@ class LBFGS : public BFGS {
      *
      * @param q Gradient-like vector to be modified in place.
      */
-    void backward_pass(VectorXd &q);
+    void backward_pass(Vector &q);
 
     /**
      * @brief Second loop of the two-loop recursion.
@@ -74,12 +72,12 @@ class LBFGS : public BFGS {
      *
      * @param r Vector updated to the final approximate direction.
      */
-    void forward_pass(VectorXd &r);
+    void forward_pass(Vector &r);
 };
 
 
 template <unsigned int m>
-void LBFGS<m>::backward_pass(VectorXd &q) {
+void LBFGS<m>::backward_pass(Vector &q) {
   for (int i = history.size() - 1; i >= 0; --i) {
     double rho = 1.0 / (history[i].second.dot(history[i].first)); // 1 / (y_i^T s_i)
     alpha[i] = rho * (history[i].first.dot(q));
@@ -88,7 +86,7 @@ void LBFGS<m>::backward_pass(VectorXd &q) {
 }
 
 template <unsigned int m>
-void LBFGS<m>::forward_pass(VectorXd &r) {
+void LBFGS<m>::forward_pass(Vector &r) {
   for (size_t i = 0; i < history.size(); ++i) {
     double rho = 1.0 / (history[i].second.dot(history[i].first));
     double beta = rho * (history[i].second.dot(r));
@@ -102,9 +100,9 @@ void LBFGS<m>::run() {
   alpha.resize(m);
 
   int iter = 0;
-  VectorXd x = x0_;
-  VectorXd grad = MathTools::gradient(fun_, x);
-  VectorXd d, s, y;
+  Vector x = x0_;
+  Vector grad = MathTools::gradient(fun_, x);
+  Vector d, s, y;
   
   while (grad.norm() > tol_) {
 
@@ -113,9 +111,9 @@ void LBFGS<m>::run() {
       d = computeDirectionP(grad);
     } else {
       // Two-loop recursion for L-BFGS direction
-      VectorXd q = grad;
+      Vector q = grad;
       backward_pass(q);
-      VectorXd r = B * q;
+      Vector r = B * q;
       forward_pass(r);
       d = -r;
     }
