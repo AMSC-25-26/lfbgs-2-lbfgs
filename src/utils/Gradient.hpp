@@ -1,5 +1,5 @@
-#ifndef MATHTOOLS_HPP
-#define MATHTOOLS_HPP
+#ifndef GRADIENT_HPP
+#define GRADIENT_HPP
 
 #include <functional>
 #include <ranges>
@@ -31,23 +31,34 @@ concept Function =
   std::invocable<F, const P &> &&
   std::convertible_to<std::invoke_result_t<F, const P &>, double>;
 
-/**
- * @class MathTools
- * @brief Utility class for mathematical operations.
- *
- * Currently provides:
- *  - Numerical gradient computation.
- */
-class MathTools {
-private:
-    // Private members (if any) ...
 
-public:
+/**
+ * @class Gradient
+ * @brief class for computing gradients of functions.
+ *
+ */
+class Gradient {
+  private:
+    double h;
+
+  public:
+    Gradient(double h_ = 1e-8) : h(h_) {
+      if (h <= 0.0) {
+        throw std::invalid_argument("'h' must be positive");
+      }
+    }
+
+    double setStepSize(double h_) {
+      if (h_ <= 0.0) {
+        throw std::invalid_argument("'h' must be positive");
+      }
+      this->h = h_;
+    }
 
     /**
      * @brief Compute the numerical gradient of a given function at a given point.
      *
-     * Uses central finite differences with step size h = 1e-8.
+     * Uses central finite differences.
      *
      * @tparam P Type of the point/vector.
      * @tparam F Type of the function.
@@ -59,13 +70,12 @@ public:
       Point P,
       Function<P> F
     >
-    static P gradient(
+    P compute(
       const F & f,
       const P & point
-    ) {
+    ) const {
       P grad = point;
 
-      double h = 1e-8; // finite difference step
       for (size_t i = 0; i < point.size(); ++i) {
         P x_plus_h = point;
         P x_minus_h = point;
@@ -76,7 +86,6 @@ public:
       }
       return grad;
     }
-
 };
 
-#endif // MATHTOOLS_HPP
+#endif // GRADIENT_HPP
