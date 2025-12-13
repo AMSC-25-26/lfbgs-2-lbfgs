@@ -1,5 +1,5 @@
 #include "LineSearch.hpp"
-#include "utils/MathTools.hpp"
+#include "Gradient.hpp"
 
 #define MAX_ITER 100
 
@@ -86,7 +86,7 @@ public:
             }
 
             Eigen::VectorXd x_new = x + alpha * p;
-            Eigen::VectorXd g_new = MathTools::gradient(fun, x_new);
+            Eigen::VectorXd g_new = gradTool.compute(fun, x_new);
             double dphi = g_new.dot(p);
 
             // Curvature condition
@@ -131,7 +131,7 @@ private:
                 alpha_hi = alpha_j;
             } else {
                 Eigen::VectorXd x_new = x + alpha_j * p;
-                double dphi_j = MathTools::gradient(fun, x_new).dot(p);
+                double dphi_j = gradTool.compute(fun, x_new).dot(p);
 
                 if (std::abs(dphi_j) <= -c2 * dphi0) {
                     return alpha_j;

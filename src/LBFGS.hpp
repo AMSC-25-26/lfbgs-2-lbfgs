@@ -2,7 +2,7 @@
 #include <deque>
 #include <utility>
 #include "BFGS.hpp"
-#include "utils/MathTools.hpp"
+#include "Gradient.hpp"
 
 /**
  * @brief Limited-memory BFGS optimizer (L-BFGS).
@@ -87,7 +87,7 @@ void LBFGS<m>::run() {
 
   int iter = 0;
   Vector x = x0_;
-  Vector grad = MathTools::gradient(fun_, x);
+  Vector grad = gradTool.compute(fun_, x);
   Vector d, s, y;
   
   while (grad.norm() > tol_) {

@@ -74,6 +74,7 @@ public:
     Vector getCurrentX() const;
 
 protected:
+    Gradient gradTool = Gradient();
 
     /** @brief Objective function. */
     std::function<double(Vector const&)> fun_;

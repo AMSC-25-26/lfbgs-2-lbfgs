@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "LineSearch.hpp"
-#include "MathTools.hpp"
+#include "Gradient.hpp"
 
 using lfbgs::LineSearchType;
 

@@ -7,7 +7,7 @@
 #include <Eigen/Dense>
 #include <cmath>
 
-#include "MathTools.hpp"
+#include "Gradient.hpp"
 
 using PointType = Eigen::VectorXd;
 

@@ -1,5 +1,5 @@
 #include "BFGS.hpp"
-#include "utils/MathTools.hpp"
+#include "Gradient.hpp"
 #include "LineSearch.hpp"
 
 /**
@@ -62,7 +62,7 @@ void BFGS::updateSolution(Vector& x_old, Vector& grad_old,
   delta = alpha * d;
   Vector x_new = x_old + delta;
 
-  Vector grad_new = MathTools::gradient(fun_, x_new);
+  Vector grad_new = gradTool.compute(fun_, x_new);
   gamma = grad_new - grad_old;
 
   x_old = x_new;
@@ -80,7 +80,7 @@ void BFGS::run()
   unsigned int iter = 0;
 
   Vector x = x0_;
-  Vector grad = MathTools::gradient(fun_, x);
+  Vector grad = gradTool.compute(fun_, x);
   Vector d, delta, gamma;
 
   while(grad.norm() > tol_) {

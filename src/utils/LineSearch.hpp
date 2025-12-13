@@ -5,7 +5,7 @@
 #include <cmath>
 #include <functional>
 #include <Eigen/Dense>
-#include "MathTools.hpp"
+#include "Gradient.hpp"
 
 namespace lfbgs {
 
@@ -53,6 +53,9 @@ public:
         const Eigen::VectorXd& g,
         const Eigen::VectorXd& p
     ) = 0;
+
+protected:
+    Gradient gradTool = Gradient();
 };
 
 
