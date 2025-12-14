@@ -33,11 +33,7 @@ void BFGS::updateB(const Vector& gamma, const Vector& delta)
 {
   double yBy = gamma.transpose().dot(B*gamma);
   double sy = delta.transpose().dot(gamma);
-
-  Eigen::MatrixXd term1 = ((sy + yBy) * (delta*delta.transpose())) / (sy*sy);
-  Eigen::MatrixXd term2 = ((B * gamma * delta.transpose()) + (delta * gamma.transpose() * B)) / sy;
-
-  B += term1 - term2;
+  B += (((sy + yBy) * (delta*delta.transpose())) / (sy*sy)) - (((B * gamma * delta.transpose()) + (delta * gamma.transpose() * B)) / sy);
 }
 
 /**
