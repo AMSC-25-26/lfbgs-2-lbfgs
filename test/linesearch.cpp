@@ -1,11 +1,10 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
-
 #include "LineSearch.hpp"
-#include "Gradient.hpp"
 
 using lfbgs::LineSearchType;
+using Vector = Eigen::VectorXd;
 
 
 bool approx_equal(double a, double b, double tol = 1e-6) {
@@ -17,7 +16,7 @@ bool approx_equal(double a, double b, double tol = 1e-6) {
  * @param x Input vector
  * @return Function value
  */
-double quadratic(const Eigen::VectorXd& x) {
+double quadratic(const Vector& x) {
   return 0.5 * x.squaredNorm();
 }
 
@@ -26,7 +25,7 @@ double quadratic(const Eigen::VectorXd& x) {
  * @param x Input vector
  * @return Gradient vector (equal to x for this function)
  */
-Eigen::VectorXd quadratic_grad(const Eigen::VectorXd& x) {
+Vector quadratic_grad(const Vector& x) {
   return x;
 }
 
@@ -37,10 +36,10 @@ Eigen::VectorXd quadratic_grad(const Eigen::VectorXd& x) {
 int test_backtracking_armijo() {
   auto line_search = lfbgs::make_line_search(LineSearchType::BacktrackingArmijo);
   
-  Eigen::VectorXd x(2);
+  Vector x(2);
   x << 1.0, 1.0;
-  Eigen::VectorXd g = quadratic_grad(x);
-  Eigen::VectorXd p = -g;
+  Vector g = quadratic_grad(x);
+  Vector p = -g;
   
   double alpha = line_search->compute(quadratic, x, g, p);
   
@@ -58,10 +57,10 @@ int test_backtracking_armijo() {
 int test_strong_wolfe() {
   auto line_search = lfbgs::make_line_search(LineSearchType::StrongWolfe);
   
-  Eigen::VectorXd x(2);
+  Vector x(2);
   x << 1.0, 1.0;
-  Eigen::VectorXd g = quadratic_grad(x);
-  Eigen::VectorXd p = -g;
+  Vector g = quadratic_grad(x);
+  Vector p = -g;
   
   double alpha = line_search->compute(quadratic, x, g, p);
   

@@ -1,20 +1,15 @@
 #include <iostream>
-#include "BFGS.hpp"
-#include "LineSearch.hpp"
-
 #include <Eigen/Dense>
 #include <cmath>
+#include "BFGS.hpp"
 
-#include "Gradient.hpp"
-
-using PointType = Eigen::VectorXd;
 
 void test_with_lambda_function() {
-    auto myFunc = [](const Eigen::VectorXd &x) -> double {
+    auto myFunc = [](const Vector &x) -> double {
         return std::pow(x[0] - 2.0, 2) + std::pow(x[1] + 3.0, 2);
     };
 
-    Eigen::VectorXd x0(2);
+    Vector x0(2);
     x0 << 0.0, 0.0;
     
     double tol = 1e-6;
@@ -23,8 +18,8 @@ void test_with_lambda_function() {
 
     optimizer.run();
 
-    std::cout << "Minimo trovato in: " << optimizer.getCurrentX().transpose() << std::endl;
-    std::cout << "Valore funzione: " << myFunc(optimizer.getCurrentX()) << std::endl;
+    std::cout << "Minimum in: " << optimizer.getCurrentX().transpose() << std::endl;
+    std::cout << "Function value: " << myFunc(optimizer.getCurrentX()) << std::endl;
 
 }
 
