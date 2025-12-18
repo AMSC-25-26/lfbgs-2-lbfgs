@@ -17,7 +17,7 @@ Vector BFGS::computeDirectionP(const Vector& grad)
   solver.compute(B);
 
   if (solver.info() != Eigen::Success)
-      throw std::runtime_error("CG failed: B is not SPD.");
+      throw std::runtime_error("Solver failed: B is not SPD.");
 
   Vector p = solver.solve(-grad);
   return p;
